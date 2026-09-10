@@ -9,9 +9,12 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from app.models import Base
 
 
 def _async_database_url(database_url: str) -> str:
+    if database_url.startswith("sqlite"):
+        return database_url
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
     elif database_url.startswith("postgresql://"):
@@ -29,6 +32,9 @@ def _database_url_from_environment() -> str | None:
     database_url = os.getenv("DATABASE_URL")
     if database_url:
         return database_url
+
+    if os.getenv("DB_HOST") is None:
+        return "sqlite+aiosqlite:///./trading_api.db"
 
     host = os.getenv("DB_HOST")
     user = os.getenv("DB_USER")
@@ -63,6 +69,14 @@ async def get_session():
 
     async with session_factory() as session:
         yield session
+
+
+async def initialize_database() -> None:
+    if engine is None:
+        return
+
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
 
 
 async def check_database_connection() -> str:

@@ -5,12 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import check_database_connection, get_session
-from app.mongodb import (
-    check_mongodb_connection,
-    close_mongodb,
-    initialize_mongodb,
-)
+from app.database import check_database_connection, get_session, initialize_database
 from app.models import Candle, Symbol
 from app.schemas import (
     CandleCreate,
@@ -23,9 +18,8 @@ from app.schemas import (
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    await initialize_mongodb()
+    await initialize_database()
     yield
-    await close_mongodb()
 
 
 app = FastAPI(title="Trading API", version="1.0.0", lifespan=lifespan)
@@ -51,7 +45,6 @@ async def health_check() -> dict:
         "status": "ok",
         "service": "trading-api",
         "database": await check_database_connection(),
-        "mongodb": await check_mongodb_connection(),
     }
 
 
