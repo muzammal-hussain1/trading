@@ -17,6 +17,30 @@ class Symbol(Base):
     start_time: Mapped[datetime | None] = mapped_column(
         "starttime", DateTime, nullable=True
     )
+    status: Mapped[str] = mapped_column(String(20), default="TRADING")
+    base_asset: Mapped[str | None] = mapped_column("baseAsset", String(20))
+    base_asset_precision: Mapped[int] = mapped_column("baseAssetPrecision", Integer, default=8)
+    quote_asset: Mapped[str | None] = mapped_column("quoteAsset", String(20))
+    quote_precision: Mapped[int] = mapped_column("quotePrecision", Integer, default=8)
+    quote_asset_precision: Mapped[int] = mapped_column("quoteAssetPrecision", Integer, default=8)
+    base_commission_precision: Mapped[int] = mapped_column("baseCommissionPrecision", Integer, default=8)
+    quote_commission_precision: Mapped[int] = mapped_column("quoteCommissionPrecision", Integer, default=8)
+    iceberg_allowed: Mapped[bool] = mapped_column("icebergAllowed", default=True)
+    oco_allowed: Mapped[bool] = mapped_column("ocoAllowed", default=True)
+    oto_allowed: Mapped[bool] = mapped_column("otoAllowed", default=True)
+    opo_allowed: Mapped[bool] = mapped_column("opoAllowed", default=True)
+    quote_order_qty_market_allowed: Mapped[bool] = mapped_column(
+        "quoteOrderQtyMarketAllowed", default=True
+    )
+    allow_trailing_stop: Mapped[bool] = mapped_column("allowTrailingStop", default=True)
+    cancel_replace_allowed: Mapped[bool] = mapped_column("cancelReplaceAllowed", default=True)
+    amend_allowed: Mapped[bool] = mapped_column("amendAllowed", default=True)
+    peg_instructions_allowed: Mapped[bool] = mapped_column("pegInstructionsAllowed", default=True)
+    is_spot_trading_allowed: Mapped[bool] = mapped_column("isSpotTradingAllowed", default=True)
+    is_margin_trading_allowed: Mapped[bool] = mapped_column("isMarginTradingAllowed", default=True)
+    default_self_trade_prevention_mode: Mapped[str] = mapped_column(
+        "defaultSelfTradePreventionMode", String(30), default="EXPIRE_MAKER"
+    )
 
 
 class Candle(Base):

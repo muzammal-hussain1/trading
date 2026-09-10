@@ -13,6 +13,28 @@ def _normalize_timestamp(value: datetime | None) -> datetime | None:
 class SymbolCreate(BaseModel):
     symbol: str | None = Field(default=None, max_length=50)
     start_time: datetime | None = Field(default=None, alias="startTime")
+    status: str = "TRADING"
+    base_asset: str | None = Field(default=None, alias="baseAsset")
+    base_asset_precision: int = Field(default=8, alias="baseAssetPrecision")
+    quote_asset: str | None = Field(default=None, alias="quoteAsset")
+    quote_precision: int = Field(default=8, alias="quotePrecision")
+    quote_asset_precision: int = Field(default=8, alias="quoteAssetPrecision")
+    base_commission_precision: int = Field(default=8, alias="baseCommissionPrecision")
+    quote_commission_precision: int = Field(default=8, alias="quoteCommissionPrecision")
+    iceberg_allowed: bool = Field(default=True, alias="icebergAllowed")
+    oco_allowed: bool = Field(default=True, alias="ocoAllowed")
+    oto_allowed: bool = Field(default=True, alias="otoAllowed")
+    opo_allowed: bool = Field(default=True, alias="opoAllowed")
+    quote_order_qty_market_allowed: bool = Field(default=True, alias="quoteOrderQtyMarketAllowed")
+    allow_trailing_stop: bool = Field(default=True, alias="allowTrailingStop")
+    cancel_replace_allowed: bool = Field(default=True, alias="cancelReplaceAllowed")
+    amend_allowed: bool = Field(default=True, alias="amendAllowed")
+    peg_instructions_allowed: bool = Field(default=True, alias="pegInstructionsAllowed")
+    is_spot_trading_allowed: bool = Field(default=True, alias="isSpotTradingAllowed")
+    is_margin_trading_allowed: bool = Field(default=True, alias="isMarginTradingAllowed")
+    default_self_trade_prevention_mode: str = Field(
+        default="EXPIRE_MAKER", alias="defaultSelfTradePreventionMode"
+    )
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -22,6 +44,28 @@ class SymbolCreate(BaseModel):
 class SymbolUpdate(BaseModel):
     symbol: str | None = Field(default=None, max_length=50)
     start_time: datetime | None = Field(default=None, alias="startTime")
+    status: str | None = None
+    base_asset: str | None = Field(default=None, alias="baseAsset")
+    base_asset_precision: int | None = Field(default=None, alias="baseAssetPrecision")
+    quote_asset: str | None = Field(default=None, alias="quoteAsset")
+    quote_precision: int | None = Field(default=None, alias="quotePrecision")
+    quote_asset_precision: int | None = Field(default=None, alias="quoteAssetPrecision")
+    base_commission_precision: int | None = Field(default=None, alias="baseCommissionPrecision")
+    quote_commission_precision: int | None = Field(default=None, alias="quoteCommissionPrecision")
+    iceberg_allowed: bool | None = Field(default=None, alias="icebergAllowed")
+    oco_allowed: bool | None = Field(default=None, alias="ocoAllowed")
+    oto_allowed: bool | None = Field(default=None, alias="otoAllowed")
+    opo_allowed: bool | None = Field(default=None, alias="opoAllowed")
+    quote_order_qty_market_allowed: bool | None = Field(default=None, alias="quoteOrderQtyMarketAllowed")
+    allow_trailing_stop: bool | None = Field(default=None, alias="allowTrailingStop")
+    cancel_replace_allowed: bool | None = Field(default=None, alias="cancelReplaceAllowed")
+    amend_allowed: bool | None = Field(default=None, alias="amendAllowed")
+    peg_instructions_allowed: bool | None = Field(default=None, alias="pegInstructionsAllowed")
+    is_spot_trading_allowed: bool | None = Field(default=None, alias="isSpotTradingAllowed")
+    is_margin_trading_allowed: bool | None = Field(default=None, alias="isMarginTradingAllowed")
+    default_self_trade_prevention_mode: str | None = Field(
+        default=None, alias="defaultSelfTradePreventionMode"
+    )
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -32,6 +76,26 @@ class SymbolResponse(BaseModel):
     id: int
     symbol: str | None
     start_time: datetime | None = Field(alias="startTime")
+    status: str
+    base_asset: str | None = Field(alias="baseAsset")
+    base_asset_precision: int = Field(alias="baseAssetPrecision")
+    quote_asset: str | None = Field(alias="quoteAsset")
+    quote_precision: int = Field(alias="quotePrecision")
+    quote_asset_precision: int = Field(alias="quoteAssetPrecision")
+    base_commission_precision: int = Field(alias="baseCommissionPrecision")
+    quote_commission_precision: int = Field(alias="quoteCommissionPrecision")
+    iceberg_allowed: bool = Field(alias="icebergAllowed")
+    oco_allowed: bool = Field(alias="ocoAllowed")
+    oto_allowed: bool = Field(alias="otoAllowed")
+    opo_allowed: bool = Field(alias="opoAllowed")
+    quote_order_qty_market_allowed: bool = Field(alias="quoteOrderQtyMarketAllowed")
+    allow_trailing_stop: bool = Field(alias="allowTrailingStop")
+    cancel_replace_allowed: bool = Field(alias="cancelReplaceAllowed")
+    amend_allowed: bool = Field(alias="amendAllowed")
+    peg_instructions_allowed: bool = Field(alias="pegInstructionsAllowed")
+    is_spot_trading_allowed: bool = Field(alias="isSpotTradingAllowed")
+    is_margin_trading_allowed: bool = Field(alias="isMarginTradingAllowed")
+    default_self_trade_prevention_mode: str = Field(alias="defaultSelfTradePreventionMode")
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
