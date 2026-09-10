@@ -1,5 +1,3 @@
-import os
-
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import (
@@ -11,11 +9,7 @@ from sqlalchemy.ext.asyncio import (
 from app.models import Base
 
 
-def _database_url_from_environment() -> str | None:
-    return os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./trading_api.db")
-
-
-database_url = _database_url_from_environment()
+database_url = "sqlite+aiosqlite:///./trading_api.db"
 engine: AsyncEngine | None = (
     create_async_engine(database_url, pool_pre_ping=True)
     if database_url
