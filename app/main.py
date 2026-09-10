@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 import httpx
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -169,6 +169,22 @@ async def list_symbols(
     session: AsyncSession = Depends(get_session),
 ) -> list[Symbol]:
     result = await session.scalars(select(Symbol).order_by(Symbol.id))
+    return list(result)
+
+
+@app.get(
+    "/api/v1/symbols/by-base-asset",
+    response_model=list[SymbolResponse],
+)
+async def list_symbols_by_base_asset(
+    base_asset: str = Query(..., alias="baseAsset", min_length=1),
+    session: AsyncSession = Depends(get_session),
+) -> list[Symbol]:
+    result = await session.scalars(
+        select(Symbol)
+        .where(Symbol.base_asset == base_asset.upper())
+        .order_by(Symbol.id)
+    )
     return list(result)
 
 
