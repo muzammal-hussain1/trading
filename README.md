@@ -30,7 +30,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 - `POST /api/v1/symbols` - Create a symbol
 - `POST /api/v1/symbols/sync-binance` - Import and update symbols from Binance
 - `GET /api/v1/symbols` - List symbols
-- `GET /api/v1/symbols/by-status?status=TRADING` - List symbols by status
+- `GET /api/v1/symbols/by-status?status=TRADING&quoteAsset=BTC` - List symbols by status and quote asset
 - `GET /api/v1/symbols/by-base-asset?baseAsset=ETH` - List symbols by base asset
 - `GET /api/v1/symbols/{id}` - Get a symbol
 - `PATCH /api/v1/symbols/{id}` - Update a symbol

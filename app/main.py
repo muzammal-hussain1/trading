@@ -194,13 +194,14 @@ async def list_symbols_by_quote_asset(
 )
 async def list_symbols_by_status(
     status_value: str = Query(..., alias="status", min_length=1),
+    quote_asset: str | None = Query(None, alias="quoteAsset", min_length=1),
     session: AsyncSession = Depends(get_session),
 ) -> list[Symbol]:
-    result = await session.scalars(
-        select(Symbol)
-        .where(Symbol.status == status_value.upper())
-        .order_by(Symbol.id)
-    )
+    filters = [Symbol.status == status_value.upper()]
+    if quote_asset:
+        filters.append(Symbol.quote_asset == quote_asset.upper())
+
+    result = await session.scalars(select(Symbol).where(*filters).order_by(Symbol.id))
     return list(result)
 
 
