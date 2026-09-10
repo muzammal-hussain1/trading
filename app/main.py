@@ -173,16 +173,32 @@ async def list_symbols(
 
 
 @app.get(
-    "/api/v1/symbols/by-base-asset",
+    "/api/v1/symbols/by-quoteAsset",
     response_model=list[SymbolResponse],
 )
-async def list_symbols_by_base_asset(
-    base_asset: str = Query(..., alias="baseAsset", min_length=1),
+async def list_symbols_by_quote_asset(
+    quote_asset: str = Query(..., alias="quoteAsset", min_length=1),
     session: AsyncSession = Depends(get_session),
 ) -> list[Symbol]:
     result = await session.scalars(
         select(Symbol)
-        .where(Symbol.base_asset == base_asset.upper())
+        .where(Symbol.quote_asset == quote_asset.upper())
+        .order_by(Symbol.id)
+    )
+    return list(result)
+
+
+@app.get(
+    "/api/v1/symbols/by-status",
+    response_model=list[SymbolResponse],
+)
+async def list_symbols_by_status(
+    status_value: str = Query(..., alias="status", min_length=1),
+    session: AsyncSession = Depends(get_session),
+) -> list[Symbol]:
+    result = await session.scalars(
+        select(Symbol)
+        .where(Symbol.status == status_value.upper())
         .order_by(Symbol.id)
     )
     return list(result)
