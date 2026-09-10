@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+import httpx
 from fastapi import Depends, FastAPI, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -89,6 +90,78 @@ async def create_symbol(
     await session.commit()
     await session.refresh(symbol)
     return symbol
+
+
+@app.post("/api/v1/symbols/sync-binance")
+async def sync_binance_symbols(
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, int | str]:
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.get("https://api.binance.com/api/v3/exchangeInfo")
+            response.raise_for_status()
+    except httpx.HTTPError as error:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Binance exchangeInfo request failed: {error}",
+        ) from error
+
+    exchange_info = response.json()
+    binance_symbols = exchange_info.get("symbols", [])
+    synced_count = 0
+
+    for binance_symbol in binance_symbols:
+        symbol_name = binance_symbol.get("symbol")
+        if not symbol_name:
+            continue
+
+        symbol = await session.scalar(
+            select(Symbol).where(Symbol.symbol == symbol_name)
+        )
+        if symbol is None:
+            symbol = Symbol(symbol=symbol_name)
+            session.add(symbol)
+
+        symbol.status = binance_symbol.get("status", "TRADING")
+        symbol.base_asset = binance_symbol.get("baseAsset")
+        symbol.base_asset_precision = binance_symbol.get("baseAssetPrecision", 8)
+        symbol.quote_asset = binance_symbol.get("quoteAsset")
+        symbol.quote_precision = binance_symbol.get("quotePrecision", 8)
+        symbol.quote_asset_precision = binance_symbol.get("quoteAssetPrecision", 8)
+        symbol.base_commission_precision = binance_symbol.get(
+            "baseCommissionPrecision", 8
+        )
+        symbol.quote_commission_precision = binance_symbol.get(
+            "quoteCommissionPrecision", 8
+        )
+        symbol.iceberg_allowed = binance_symbol.get("icebergAllowed", True)
+        symbol.oco_allowed = binance_symbol.get("ocoAllowed", True)
+        symbol.oto_allowed = binance_symbol.get("otoAllowed", True)
+        symbol.opo_allowed = binance_symbol.get("opoAllowed", True)
+        symbol.quote_order_qty_market_allowed = binance_symbol.get(
+            "quoteOrderQtyMarketAllowed", True
+        )
+        symbol.allow_trailing_stop = binance_symbol.get("allowTrailingStop", True)
+        symbol.cancel_replace_allowed = binance_symbol.get(
+            "cancelReplaceAllowed", True
+        )
+        symbol.amend_allowed = binance_symbol.get("amendAllowed", True)
+        symbol.peg_instructions_allowed = binance_symbol.get(
+            "pegInstructionsAllowed", True
+        )
+        symbol.is_spot_trading_allowed = binance_symbol.get(
+            "isSpotTradingAllowed", True
+        )
+        symbol.is_margin_trading_allowed = binance_symbol.get(
+            "isMarginTradingAllowed", True
+        )
+        symbol.default_self_trade_prevention_mode = binance_symbol.get(
+            "defaultSelfTradePreventionMode", "EXPIRE_MAKER"
+        )
+        synced_count += 1
+
+    await session.commit()
+    return {"source": "binance", "synced": synced_count}
 
 
 @app.get("/api/v1/symbols", response_model=list[SymbolResponse])
