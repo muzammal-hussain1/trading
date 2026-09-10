@@ -14,7 +14,6 @@ class Symbol(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     symbol: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    # PostgreSQL lowercases unquoted startTime in the supplied CREATE TABLE.
     start_time: Mapped[datetime | None] = mapped_column(
         "starttime", DateTime, nullable=True
     )

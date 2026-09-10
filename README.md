@@ -13,8 +13,7 @@ python -m pip install -r requirements.txt
 By default, the API uses a local SQLite database at `./trading_api.db`. The
 `symbols` and `candles` tables are created automatically when the API starts.
 
-To use another database, set `DATABASE_URL` before starting the API. PostgreSQL
-URLs are supported through `asyncpg`.
+The `DATABASE_URL` setting can override the local database path when needed.
 
 ```powershell
 $env:DATABASE_URL = "sqlite+aiosqlite:///./trading_api.db"
