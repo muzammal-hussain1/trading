@@ -118,7 +118,7 @@ class CandleCreate(BaseModel):
         default=None, alias="takerQuoteAssetVolume", max_digits=20, decimal_places=8
     )
     trades: int | None = None
-    percentage: Decimal | None = Field(
+    percent: Decimal | None = Field(
         default=None, max_digits=10, decimal_places=3
     )
     symbol: str | None = Field(default=None, max_length=50)
@@ -143,7 +143,7 @@ class CandleResponse(BaseModel):
     taker_base_asset_volume: Decimal | None = Field(alias="takerBaseAssetVolume")
     taker_quote_asset_volume: Decimal | None = Field(alias="takerQuoteAssetVolume")
     trades: int | None
-    percentage: Decimal | None
+    percent: Decimal | None
     symbol: str | None
     interval: str | None
 

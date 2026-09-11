@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 import httpx
 from fastapi import Depends, FastAPI, HTTPException, Query, status
@@ -259,6 +259,14 @@ async def download_binance_candles(
                             "trades": kline[8],
                             "taker_base_asset_volume": Decimal(kline[9]),
                             "taker_quote_asset_volume": Decimal(kline[10]),
+                            "percent": (
+                                ((Decimal(kline[4]) - Decimal(kline[3]))
+                                 / (Decimal(kline[2]) - Decimal(kline[3]))
+                                 * Decimal("100"))
+                                .quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
+                                if Decimal(kline[2]) != Decimal(kline[3])
+                                else Decimal("0")
+                            ),
                             "symbol": symbol_name,
                             "interval": interval,
                         }
