@@ -90,6 +90,21 @@ async def initialize_database() -> None:
                     )
                 )
 
+        candle_indexes = await connection.run_sync(
+            lambda sync_connection: inspect(sync_connection).get_indexes("candles")
+        )
+        if not any(
+            index["name"] == "uq_candles_symbol_open_time_timeframe"
+            for index in candle_indexes
+        ):
+            await connection.execute(
+                text(
+                    "CREATE UNIQUE INDEX "
+                    '"uq_candles_symbol_open_time_timeframe" '
+                    'ON candles (symbol, "opentime", timeframe)'
+                )
+            )
+
 
 async def check_database_connection() -> str:
     if engine is None:

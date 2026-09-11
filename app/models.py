@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import DateTime, Integer, Numeric, String
+from sqlalchemy import DateTime, Integer, Numeric, String, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -45,6 +45,11 @@ class Symbol(Base):
 
 class Candle(Base):
     __tablename__ = "candles"
+    __table_args__ = (
+        UniqueConstraint(
+            "symbol", "opentime", "timeframe", name="uq_candles_symbol_open_time_timeframe"
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     open_time: Mapped[datetime | None] = mapped_column(
