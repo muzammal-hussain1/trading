@@ -47,7 +47,7 @@ class Candle(Base):
     __tablename__ = "candles"
     __table_args__ = (
         UniqueConstraint(
-            "symbol", "opentime", "timeframe", name="uq_candles_symbol_open_time_timeframe"
+            "symbol", "opentime", "interval", name="uq_candles_symbol_open_time_interval"
         ),
     )
 
@@ -87,4 +87,4 @@ class Candle(Base):
         "percent", Numeric(10, 3), nullable=True
     )
     symbol: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    timeframe: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    timeframe: Mapped[str | None] = mapped_column("interval", String(20), nullable=True)

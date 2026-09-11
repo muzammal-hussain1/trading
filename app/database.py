@@ -90,18 +90,30 @@ async def initialize_database() -> None:
                     )
                 )
 
+        if "timeframe" in existing_candle_columns and "interval" not in existing_candle_columns:
+            await connection.execute(
+                text('ALTER TABLE candles RENAME COLUMN "timeframe" TO "interval"')
+            )
+
         candle_indexes = await connection.run_sync(
             lambda sync_connection: inspect(sync_connection).get_indexes("candles")
         )
-        if not any(
+        if any(
             index["name"] == "uq_candles_symbol_open_time_timeframe"
+            for index in candle_indexes
+        ):
+            await connection.execute(
+                text('DROP INDEX "uq_candles_symbol_open_time_timeframe"')
+            )
+        if not any(
+            index["name"] == "uq_candles_symbol_open_time_interval"
             for index in candle_indexes
         ):
             await connection.execute(
                 text(
                     "CREATE UNIQUE INDEX "
-                    '"uq_candles_symbol_open_time_timeframe" '
-                    'ON candles (symbol, "opentime", timeframe)'
+                    '"uq_candles_symbol_open_time_interval" '
+                    'ON candles (symbol, "opentime", interval)'
                 )
             )
 
