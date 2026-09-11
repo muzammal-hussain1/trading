@@ -1,9 +1,12 @@
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+from decimal import Decimal
 
 import httpx
 from fastapi import Depends, FastAPI, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import select
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import check_database_connection, get_session, initialize_database
@@ -203,6 +206,98 @@ async def list_symbols_by_status(
 
     result = await session.scalars(select(Symbol).where(*filters).order_by(Symbol.id))
     return list(result)
+
+
+@app.post("/api/v1/candles/download-binance")
+async def download_binance_candles(
+    start_time: int = Query(1789136648000, alias="startTime", ge=0),
+    interval: str = Query("1m", min_length=1),
+    limit: int = Query(1000, ge=1, le=1000),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, int | str]:
+    symbols = await session.scalars(
+        select(Symbol.symbol)
+        .where(Symbol.quote_asset == "USDT", Symbol.status == "TRADING")
+        .where(Symbol.symbol.is_not(None))
+        .order_by(Symbol.symbol)
+    )
+    symbol_names = list(symbols)
+    downloaded_symbols = 0
+    inserted_candles = 0
+    request_count = 0
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            for symbol_name in symbol_names:
+                symbol_start_time = start_time
+
+                while True:
+                    response = await client.get(
+                        "https://api.binance.com/api/v3/klines",
+                        params={
+                            "symbol": symbol_name,
+                            "interval": interval,
+                            "startTime": symbol_start_time,
+                            "limit": limit,
+                        },
+                    )
+                    request_count += 1
+                    response.raise_for_status()
+                    klines = response.json()
+                    if not klines:
+                        break
+
+                    candle_rows = [
+                        {
+                            "open_time": datetime.fromtimestamp(
+                                kline[0] / 1000, tz=timezone.utc
+                            ).replace(tzinfo=None),
+                            "open": Decimal(kline[1]),
+                            "high": Decimal(kline[2]),
+                            "low": Decimal(kline[3]),
+                            "close": Decimal(kline[4]),
+                            "volume": Decimal(kline[5]),
+                            "close_time": datetime.fromtimestamp(
+                                kline[6] / 1000, tz=timezone.utc
+                            ).replace(tzinfo=None),
+                            "quote_volume": Decimal(kline[7]),
+                            "trades": kline[8],
+                            "taker_base_asset_volume": Decimal(kline[9]),
+                            "taker_quote_asset_volume": Decimal(kline[10]),
+                            "symbol": symbol_name,
+                            "interval": interval,
+                        }
+                        for kline in klines
+                    ]
+                    if candle_rows:
+                        statement = sqlite_insert(Candle).values(candle_rows)
+                        statement = statement.on_conflict_do_nothing(
+                            index_elements=["symbol", "opentime", "interval"]
+                        )
+                        result = await session.execute(statement)
+                        await session.commit()
+                        inserted_candles += result.rowcount or 0
+
+                    next_start_time = klines[-1][6]
+                    if next_start_time <= symbol_start_time:
+                        break
+                    symbol_start_time = next_start_time
+
+                downloaded_symbols += 1
+    except httpx.HTTPError as error:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Binance klines request failed: {error}",
+        ) from error
+
+    return {
+        "source": "binance",
+        "symbols": downloaded_symbols,
+        "candles": inserted_candles,
+        "requests": request_count,
+        "interval": interval,
+    }
 
 
 @app.get("/api/v1/symbols/{symbol_id}", response_model=SymbolResponse)

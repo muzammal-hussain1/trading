@@ -122,7 +122,7 @@ class CandleCreate(BaseModel):
         default=None, max_digits=10, decimal_places=3
     )
     symbol: str | None = Field(default=None, max_length=50)
-    timeframe: str | None = Field(default=None, max_length=20)
+    interval: str | None = Field(default=None, max_length=20)
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -149,6 +149,6 @@ class CandleResponse(BaseModel):
     trades: int | None
     percentage: Decimal | None
     symbol: str | None
-    timeframe: str | None
+    interval: str | None
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
