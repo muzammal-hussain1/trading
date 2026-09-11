@@ -71,6 +71,25 @@ async def initialize_database() -> None:
                     )
                 )
 
+        existing_candle_columns = await connection.run_sync(
+            lambda sync_connection: {
+                column["name"]
+                for column in inspect(sync_connection).get_columns("candles")
+            }
+        )
+        candle_columns = {
+            "takerBaseAssetVolume": "NUMERIC(20, 8)",
+            "takerQuoteAssetVolume": "NUMERIC(20, 8)",
+        }
+        for column_name, column_definition in candle_columns.items():
+            if column_name not in existing_candle_columns:
+                await connection.execute(
+                    text(
+                        f'ALTER TABLE candles ADD COLUMN "{column_name}" '
+                        f"{column_definition}"
+                    )
+                )
+
 
 async def check_database_connection() -> str:
     if engine is None:

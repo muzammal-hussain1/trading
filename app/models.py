@@ -71,6 +71,12 @@ class Candle(Base):
     quote_volume: Mapped[Decimal | None] = mapped_column(
         "quotevolume", Numeric(20, 8), nullable=True
     )
+    taker_base_asset_volume: Mapped[Decimal | None] = mapped_column(
+        "takerBaseAssetVolume", Numeric(20, 8), nullable=True
+    )
+    taker_quote_asset_volume: Mapped[Decimal | None] = mapped_column(
+        "takerQuoteAssetVolume", Numeric(20, 8), nullable=True
+    )
     trades: Mapped[int | None] = mapped_column(Integer, nullable=True)
     percentage: Mapped[Decimal | None] = mapped_column(
         "percent", Numeric(10, 3), nullable=True
