@@ -101,13 +101,13 @@ class SymbolResponse(BaseModel):
 
 
 class CandleCreate(BaseModel):
-    open_time: datetime | None = Field(default=None, alias="openTime")
+    open_time: int | None = Field(default=None, alias="openTime")
     open: Decimal | None = Field(default=None, max_digits=20, decimal_places=8)
     high: Decimal | None = Field(default=None, max_digits=20, decimal_places=8)
     low: Decimal | None = Field(default=None, max_digits=20, decimal_places=8)
     close: Decimal | None = Field(default=None, max_digits=20, decimal_places=8)
     volume: Decimal | None = Field(default=None, max_digits=20, decimal_places=8)
-    close_time: datetime | None = Field(default=None, alias="closeTime")
+    close_time: int | None = Field(default=None, alias="closeTime")
     quote_volume: Decimal | None = Field(
         default=None, alias="quoteVolume", max_digits=20, decimal_places=8
     )
@@ -126,23 +126,19 @@ class CandleCreate(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
-    _normalize_open_time = field_validator("open_time")(_normalize_timestamp)
-    _normalize_close_time = field_validator("close_time")(_normalize_timestamp)
-
-
 class CandleUpdate(CandleCreate):
     pass
 
 
 class CandleResponse(BaseModel):
     id: int
-    open_time: datetime | None = Field(alias="openTime")
+    open_time: int | None = Field(alias="openTime")
     open: Decimal | None
     high: Decimal | None
     low: Decimal | None
     close: Decimal | None
     volume: Decimal | None
-    close_time: datetime | None = Field(alias="closeTime")
+    close_time: int | None = Field(alias="closeTime")
     quote_volume: Decimal | None = Field(alias="quoteVolume")
     taker_base_asset_volume: Decimal | None = Field(alias="takerBaseAssetVolume")
     taker_quote_asset_volume: Decimal | None = Field(alias="takerQuoteAssetVolume")

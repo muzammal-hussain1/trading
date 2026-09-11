@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 from decimal import Decimal
 
 import httpx
@@ -249,17 +248,13 @@ async def download_binance_candles(
 
                     candle_rows = [
                         {
-                            "open_time": datetime.fromtimestamp(
-                                kline[0] / 1000, tz=timezone.utc
-                            ).replace(tzinfo=None),
+                            "open_time": kline[0],
                             "open": Decimal(kline[1]),
                             "high": Decimal(kline[2]),
                             "low": Decimal(kline[3]),
                             "close": Decimal(kline[4]),
                             "volume": Decimal(kline[5]),
-                            "close_time": datetime.fromtimestamp(
-                                kline[6] / 1000, tz=timezone.utc
-                            ).replace(tzinfo=None),
+                            "close_time": kline[6],
                             "quote_volume": Decimal(kline[7]),
                             "trades": kline[8],
                             "taker_base_asset_volume": Decimal(kline[9]),

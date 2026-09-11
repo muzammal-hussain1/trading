@@ -95,6 +95,61 @@ async def initialize_database() -> None:
                 text('ALTER TABLE candles RENAME COLUMN "timeframe" TO "interval"')
             )
 
+        candle_column_types = await connection.run_sync(
+            lambda sync_connection: {
+                column["name"]: str(column["type"]).upper()
+                for column in inspect(sync_connection).get_columns("candles")
+            }
+        )
+        if "INTEGER" not in candle_column_types.get("opentime", ""):
+            await connection.execute(text('DROP INDEX IF EXISTS "uq_candles_symbol_open_time_timeframe"'))
+            await connection.execute(text('DROP INDEX IF EXISTS "uq_candles_symbol_open_time_interval"'))
+            await connection.execute(
+                text(
+                    """
+                    CREATE TABLE candles_migrated (
+                        id INTEGER PRIMARY KEY,
+                        opentime BIGINT,
+                        open NUMERIC(20, 8),
+                        high NUMERIC(20, 8),
+                        low NUMERIC(20, 8),
+                        close NUMERIC(20, 8),
+                        volume NUMERIC(20, 8),
+                        closetime BIGINT,
+                        quotevolume NUMERIC(20, 8),
+                        takerBaseAssetVolume NUMERIC(20, 8),
+                        takerQuoteAssetVolume NUMERIC(20, 8),
+                        trades INTEGER,
+                        percent NUMERIC(10, 3),
+                        symbol VARCHAR(50),
+                        interval VARCHAR(20)
+                    )
+                    """
+                )
+            )
+            await connection.execute(
+                text(
+                    """
+                    INSERT INTO candles_migrated
+                    SELECT id,
+                        CASE WHEN typeof(opentime) = 'integer' THEN opentime
+                             WHEN opentime IS NULL THEN NULL
+                             ELSE CAST((julianday(opentime) - 2440587.5) * 86400000 AS INTEGER)
+                        END,
+                        open, high, low, close, volume,
+                        CASE WHEN typeof(closetime) = 'integer' THEN closetime
+                             WHEN closetime IS NULL THEN NULL
+                             ELSE CAST((julianday(closetime) - 2440587.5) * 86400000 AS INTEGER)
+                        END,
+                        quotevolume, takerBaseAssetVolume, takerQuoteAssetVolume,
+                        trades, percent, symbol, interval
+                    FROM candles
+                    """
+                )
+            )
+            await connection.execute(text("DROP TABLE candles"))
+            await connection.execute(text("ALTER TABLE candles_migrated RENAME TO candles"))
+
         candle_indexes = await connection.run_sync(
             lambda sync_connection: inspect(sync_connection).get_indexes("candles")
         )

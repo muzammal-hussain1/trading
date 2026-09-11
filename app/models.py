@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import DateTime, Integer, Numeric, String, UniqueConstraint
+from sqlalchemy import BigInteger, DateTime, Integer, Numeric, String, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -52,9 +52,7 @@ class Candle(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    open_time: Mapped[datetime | None] = mapped_column(
-        "opentime", DateTime, nullable=True
-    )
+    open_time: Mapped[int | None] = mapped_column("opentime", BigInteger, nullable=True)
     open: Mapped[Decimal | None] = mapped_column(
         Numeric(20, 8), nullable=True
     )
@@ -70,9 +68,7 @@ class Candle(Base):
     volume: Mapped[Decimal | None] = mapped_column(
         Numeric(20, 8), nullable=True
     )
-    close_time: Mapped[datetime | None] = mapped_column(
-        "closetime", DateTime, nullable=True
-    )
+    close_time: Mapped[int | None] = mapped_column("closetime", BigInteger, nullable=True)
     quote_volume: Mapped[Decimal | None] = mapped_column(
         "quotevolume", Numeric(20, 8), nullable=True
     )
@@ -83,7 +79,7 @@ class Candle(Base):
         "takerQuoteAssetVolume", Numeric(20, 8), nullable=True
     )
     trades: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    percentage: Mapped[Decimal | None] = mapped_column(
+    percent: Mapped[Decimal | None] = mapped_column(
         "percent", Numeric(10, 3), nullable=True
     )
     symbol: Mapped[str | None] = mapped_column(String(50), nullable=True)
