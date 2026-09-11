@@ -26,6 +26,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="Trading API", version="1.0.1", lifespan=lifespan)
+BINANCE_REQUEST_TIMEOUT_SECONDS = 24 * 60 * 60
 
 
 class MarketQuote(BaseModel):
@@ -99,7 +100,7 @@ async def sync_binance_symbols(
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, int | str]:
     try:
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=BINANCE_REQUEST_TIMEOUT_SECONDS) as client:
             response = await client.get("https://api.binance.com/api/v3/exchangeInfo")
             response.raise_for_status()
     except httpx.HTTPError as error:
@@ -226,7 +227,7 @@ async def download_binance_candles(
     request_count = 0
 
     try:
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=BINANCE_REQUEST_TIMEOUT_SECONDS) as client:
             for symbol_name in symbol_names:
                 symbol_start_time = start_time
 
