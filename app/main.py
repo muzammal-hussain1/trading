@@ -276,7 +276,11 @@ async def download_binance_candles(
                     if candle_rows:
                         statement = sqlite_insert(Candle).values(candle_rows)
                         statement = statement.on_conflict_do_nothing(
-                            index_elements=["symbol", "opentime", "interval"]
+                            index_elements=[
+                                Candle.symbol,
+                                Candle.open_time,
+                                Candle.interval,
+                            ]
                         )
                         result = await session.execute(statement)
                         await session.commit()
